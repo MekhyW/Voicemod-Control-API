@@ -1,0 +1,7 @@
+.idea/
+.DS_Store
+node_modules
+test/output
+output
+sample
+coverage

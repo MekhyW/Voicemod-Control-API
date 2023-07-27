@@ -1,0 +1,93 @@
+{
+  "actionType": "registerPlugin",
+  "appVersion": "1.2.4.7",
+  "actionID": 100,
+  "actionObject": {
+    "result": true
+  },
+  "context": ""
+}
+
+
+
+{
+  "actionType": "getVoices",
+  "appVersion": "1.2.4.7",
+  "actionID": 100,
+  "actionObject": {
+    "freeVoices": [
+      {
+        "voiceID": "nofx",
+        "friendlyName": "No Effects"
+      },
+      {
+        "voiceID": "cop-walkie-talkie",
+        "friendlyName": "Cop walkie talkie"
+      },
+      {
+        "voiceID": "evil",
+        "friendlyName": "Evil"
+      },
+      {
+        "voiceID": "harmony",
+        "friendlyName": "Harmony"
+      },
+      {
+        "voiceID": "party-time",
+        "friendlyName": "Party time"
+      },
+      {
+        "voiceID": "romantic-ulala",
+        "friendlyName": "Romantic ulala"
+      },
+      {
+        "voiceID": "storyteller-action",
+        "friendlyName": "Storyteller action"
+      }
+    ],
+    "selectedVoice": "cop-walkie-talkie",
+    "toggleHearMyVoice": 0,
+    "toggleVoiceChanger": 1,
+    "toggleBackground": 0,
+    "toggleMute": 0,
+    "outputLevel": 50
+  },
+  "context": ""
+}
+
+
+{
+  "actionType": "getBitmap",
+  "appVersion": "1.2.4.7",
+  "actionID": 100,
+  "actionObject": {
+    "result": {
+      "default": "...",
+      "selected": "...",
+      "transparent": "..."
+    },
+    "voiceID": "nofx"
+  },
+  "context": ""
+}
+
+
+{
+  "actionType": "toggleVoiceChanger",
+  "appVersion": "1.2.4.7",
+  "actionID": "-1",
+  "actionObject": {
+    "value": 0
+  },
+  "context": ""
+}
+
+{
+  "actionType": "toggleHearMyVoice",
+  "appVersion": "1.2.4.7",
+  "actionID": "-1",
+  "actionObject": {
+    "value": 1
+  },
+  "context": ""
+}

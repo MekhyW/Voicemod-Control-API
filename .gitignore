@@ -1,0 +1,7 @@
+.idea/
+.DS_Store
+html-template/node_modules
+html-template/test/output
+html-template/output
+html-template/sample
+html-template/coverage

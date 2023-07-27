@@ -1,0 +1,161 @@
+
+
+/* General grid styles */
+.cbp-ig-grid {
+   list-style: none;
+   padding: 0 0 50px 0;
+   margin: 0;
+}
+
+/* Clear floats */
+.cbp-ig-grid:before, 
+.cbp-ig-grid:after { 
+   content: " "; 
+   display: table; 
+}
+
+.cbp-ig-grid:after { 
+   clear: both; 
+}
+
+/* grid item */
+.cbp-ig-grid li {
+   width: 33%;
+   float: left;
+   height: 100px;
+   text-align: center;
+   border-top: 1px solid #ddd;
+}
+
+/* we are using a combination of borders and box shadows to control the grid lines */
+.cbp-ig-grid li:nth-child(-n+3){
+   border-top: none;
+}
+
+.cbp-ig-grid li:nth-child(3n-1),
+.cbp-ig-grid li:nth-child(3n-2) {
+   box-shadow: 1px 0 0 #ddd;
+}
+
+/* anchor style */
+.cbp-ig-grid li > a {
+   display: block;
+   height: 100%;
+   color: #47a3da;
+   /*-webkit-transition: background 0.2s;*/
+   /*-moz-transition: background 0.2s;*/
+   /*transition: background 0.2s;*/
+}
+
+/* the icon with pseudo class for icon font */
+.cbp-ig-icon {
+   padding: 30px 0 0 0;
+   display: block;
+   /*-webkit-transition: -webkit-transform 0.2s;*/
+   /*transition: -moz-transform 0.2s;*/
+   /*transition: transform 0.2s;*/
+}
+
+.cbp-ig-icon:before {
+   font-family: 'anyoldicon';
+   font-size: 14em;
+   speak: none;
+   font-style: normal;
+   font-weight: normal;
+   font-variant: normal;
+   text-transform: none;
+   line-height: 1;
+   -webkit-font-smoothing: antialiased;
+}
+
+
+/* title element */
+.cbp-ig-grid .cbp-ig-title {
+   margin: 20px 0 10px 0;
+   padding: 20px 0 0 0;
+   font-size: 2em;
+   position: relative;
+   /*-webkit-transition: -webkit-transform 0.2s;*/
+   /*-moz-transition: -moz-transform 0.2s;*/
+   /*transition: transform 0.2s;*/
+}
+
+
+/* Hover styles */
+
+.cbp-ig-grid li > a:hover {
+   background: #47a3da;
+}
+
+.cbp-ig-grid li > a:hover .cbp-ig-icon {
+   /*-webkit-transform: translateY(10px);*/
+   /*-moz-transform: translateY(10px);*/
+   /*-ms-transform: translateY(10px);*/
+   /*transform: translateY(10px);*/
+}
+
+.cbp-ig-grid li > a:hover .cbp-ig-icon:before,
+.cbp-ig-grid li > a:hover .cbp-ig-title {
+   color: #fff;
+}
+
+.cbp-ig-grid li > a:hover .cbp-ig-title {
+   /*-webkit-transform: translateY(-30px);*/
+   /*-moz-transform: translateY(-30px);*/
+   /*-ms-transform: translateY(-30px);*/
+   /*transform: translateY(-30px);*/
+}
+
+.cbp-ig-grid li > a:hover .cbp-ig-title:before {
+   /*margin-top: 80px;*/
+}
+
+
+@media screen and (max-width: 62.75em) {
+   .cbp-ig-grid li {
+      width: 50%;
+   }
+
+   /* reset the grid lines */
+   .cbp-ig-grid li:nth-child(-n+3){
+      border-top: 1px solid #ddd;
+   }
+
+   .cbp-ig-grid li:nth-child(3n-1),
+   .cbp-ig-grid li:nth-child(3n-2) {
+      box-shadow: none;
+   }
+
+   .cbp-ig-grid li:nth-child(-n+2){
+      border-top: none;
+   }
+
+   .cbp-ig-grid li:nth-child(2n-1) {
+      box-shadow: 1px 0 0 #ddd;
+   }
+}
+
+@media screen and (max-width: 41.6em) { 
+   .cbp-ig-grid li {
+      width: 100%;
+   }
+
+   .cbp-ig-grid li:nth-child(-n+2){
+      border-top: 1px solid #ddd;
+   }
+
+   .cbp-ig-grid li:nth-child(2n-1) {
+      box-shadow: none
+   }
+
+   .cbp-ig-grid li:first-child {
+      border-top: none;
+   }
+}
+
+@media screen and (max-width: 25em) { 
+   .cbp-ig-grid {
+      font-size: 80%;
+   }
+
+}

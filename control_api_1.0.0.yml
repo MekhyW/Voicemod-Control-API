@@ -1,0 +1,1411 @@
+asyncapi: 2.4.0
+info:
+  title: Voicemod Control API
+  version: 1.0.0
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+  description: 
+    # <style>
+    #   .bullet { display:block; padding-left:1em; text-indent:-1em; }
+    # </style>
+    This documentation is aimed at developers looking to implement a full duplex connection with Voicemod Desktop App.
+    <br><br>
+    The app supports bidirectional communication with plugins via websocket communication, with messages sent from the plugin controlling different actions in the app (change current voice, play a meme, etc), and messages received from the app notifying the plugin about changes in the user status (voices available, voice selected, etc.).
+
+    <h2>How to connect to Voicemod App</h2>
+    The server listens by default at <b>ws://localhost:<PORT>/v1</b>. 
+    The port will be one of a predetermined list. The ports currently being used by the app are, in order of preference&#58;<br>
+    <div><b>• 59129</b></div>
+    <div><b>• 20000</b></div>
+    <div><b>• 39273</b></div>
+    <div><b>• 42152</b></div>
+    <div><b>• 43782</b></div>
+    <div><b>• 46667</b></div>
+    <div><b>• 35679</b></div>
+    <div><b>• 37170</b></div>
+    <div><b>• 38501</b></div>
+    <div><b>• 33952</b></div>
+    <div><b>• 30546</b></div>
+    <br>
+    After a successful connection, the client needs to send the <a href="#operation-publish-registerClient">registerClient</a> message to the app to make it aware of its presence and be able to interchange messages.
+    <br><br>
+    <b>⚠Make sure you have installed the Voicemod app (version 2.21.0.43 or newer).</b>
+    <br>
+    <b>⚠You will need a client key to use this API. This client key will be provided to you by Voicemod.</b>
+
+    <h2>Outbound messages (actions)</h2>
+    Actions are messages sent from plugin (client) to app (server), and typically come in two types&#58; 
+    <div>• user data gathering messages, such as retrieving the list of available voices or memes</div>
+    <div>• command messages, such as instructing the application to execute user commands, such as changing voice or playing a sound</div>
+    <br>
+    All outbound messages from plugin (client) to app (server) share a <a href="#message-Action">common JSON structure</a>.
+
+    <h2>Inbound messages (triggers)</h2>
+    Triggers are messages sent from app (server) to plugin (client), which allow the plugin to react to user and app state changes&#58; for example, if the user has changed the selected voice in Voicemod or if a new meme sound has been added.
+    <br><br>
+    With the exception of the registerClient inbound message, all inbound messages from app (server) to plugin (client) share a <a href="#message-Trigger">common JSON structure</a>.
+
+    <h2>Web App Example</h2>
+    You can download an example web app that demonstrates almost everything that you can do with the Control API.<br><br>
+    In order to use it&#58;
+    <div>• Download the example folder from the <a href="https://gitlab.com/voicemod/kit/control-api">Control API repository</a></div>
+    <div>• Open index.html in any web browser</div>
+    <div>• If the Voicemod Desktop App is running, the web app will automatically connect</div>
+    <div>• Launch the Voicemod app if it’s not already running. After that, you will find a "Connect" button in the upper right corner that will allow you to establish a connection</div>
+    <div>• You can control the Voicemod Desktop App through the buttons at the top. You can perform several actions such as changing a voice, enabling and disabling the voice changer, muting the microphone, or playing any sound</div>
+    <div>• At the bottom of the page you can find a log that will register any message sent to or from the Voicemod Desktop App. Use it to get examples of the JSON messages and to figure what may be going wrong in your own plugin</div>
+
+    <h2>Known Issues</h2>
+    <div>• The <b>actionID</b> field is null in some inbound messages</div>
+    <div>• A <b>getBitmap</b> message will fail if both payload fields (voiceID and memeId) are included</div>
+
+    <h2>Contact</h2>
+    Feel free to get in touch with us at <a href="mailto:devservices@voicemod.net">devservices@voicemod.net</a>.
+
+servers:
+  voicemod:
+    url: ws://localhost:59129/v1/
+    protocol: ws
+    description: Voicemod App (Websocket Server)
+
+#######################
+
+channels:
+
+  # USER / LICENSE
+
+  registerClient:
+    publish:
+      description: <b>⚠This is the first message that must be sent to the Voicemod app</b><br>
+        Once a connection is established, the plugin must send this message to make the app server aware of its presence. This is a prerequisite for communication between the plugin and app to be enabled.
+      message:
+        $ref: '#/components/messages/RegisterClientAction'
+    subscribe:
+      description: 
+        <b>⚠This is the response to the first message that must be sent to the Voicemod app</b><br>
+        This message is triggered in response to a <a href="#operation-publish-registerClient">registerClient</a> message. A <b>200, Authorized</b> response is required for communication between the plugin and app to be enabled.
+      message:
+        $ref: '#/components/messages/RegisterClientTrigger'
+
+  getUser:
+    publish:
+      description: Requests the id of the current user.
+      message:
+        $ref: '#/components/messages/GetUserAction'
+    subscribe:
+      description: This message is triggered in response to a <a href="#operation-publish-getUser">getUser</a> message.
+      message:
+        $ref: '#/components/messages/GetUserTrigger'
+
+  getUserLicense:
+    publish:
+      description: Requests user license information.
+      message:
+        $ref: '#/components/messages/GetUserLicenseAction'
+    subscribe:
+      description: This message is triggered as a response to a <a href="#operation-publish-getUserLicense">getUserLicense</a> message.
+      message:
+        $ref: '#/components/messages/GetUserLicenseTrigger'
+
+  licenseTypeChanged:
+    subscribe:
+      description: This message is triggered when the user license has changed in the Voicemod app. 
+      message:
+        $ref: '#/components/messages/LicenseTypeChangedTrigger'
+
+  getRotatoryVoicesRemainingTime:
+    publish:
+      description: Requests the remaining time (in seconds) before a refresh is made to the selection of voices that are available under the free version.
+      message:
+        $ref: '#/components/messages/GetRotatoryVoicesRemainingTimeAction'
+    subscribe:
+      description: This message is triggered in response to a <a href="#operation-publish-getRotatoryVoicesRemainingTime">getRotatoryVoicesRemainingTime</a> message.
+      message:
+        $ref: '#/components/messages/GetRotatoryVoicesRemainingTimeTrigger'
+
+  # VOICES / SOUNDBOARDS / MEMES DATA
+
+  getVoices:
+    publish:
+      description: Requests the <b>list of the available voices</b> and the <b>current voice selected</b> in the app for the current user.
+      message:
+        $ref: '#/components/messages/GetVoicesAction'
+    subscribe:
+      description: This message is triggered in response to a change in available voices (a change from free user to pro user or an update in daily free voices), and in response to a <a href="#operation-publish-getVoices">getVoices</a> message.
+      message:
+        $ref: '#/components/messages/GetVoicesTrigger'
+
+  getCurrentVoice:
+    publish:
+      description: Requests the voice that is currently selected in the app. 
+      message:
+        $ref: '#/components/messages/GetCurrentVoiceAction'
+    subscribe:
+      description: This message is triggered in response to a <a href="#operation-publish-getCurrentVoice">getCurrentVoice</a> message.
+      message:
+        $ref: '#/components/messages/GetCurrentVoiceTrigger'
+
+  getAllSoundboard:
+    publish:
+      description: Requests all soundboards from the app with info for each soundboard and each sound that is enabled based on the current user's license.
+      message:
+        $ref: '#/components/messages/GetAllSoundboardAction'
+    subscribe:
+      description: This message is triggered in response to a change in a soundboard (a change from free user to pro user), and in response to a <a href="#operation-publish-getAllSoundboard">getAllSoundboard</a> message.
+      message:
+        $ref: '#/components/messages/GetAllSoundboardTrigger'
+
+  getActiveSoundboardProfile:
+    subscribe:
+      description: This message is triggered in response to a change in of a currently active soundboard.
+      message:
+        $ref: '#/components/messages/GetActiveSoundboardProfile'
+
+
+  getMemes:
+    publish:
+      description: Requests the list of the available meme sounds for the current user.
+      message:
+        $ref: '#/components/messages/GetMemesAction'
+    subscribe:
+      description: This message is triggered in response to a change in available meme sounds (the user has added or removed a meme), and in response to a <a href="#operation-publish-getMemes">getMemes</a> message.
+      message:
+        $ref: '#/components/messages/GetMemesTrigger'
+
+  getBitmap:
+    publish:
+      description: Requests the icon for a given <b>voice</b> or <b>meme</b>.
+      message:
+        $ref: '#/components/messages/GetBitmapAction'
+    subscribe:
+      description: This message is triggered in response to a <a href="#operation-publish-getBitmap">getBitmap</a> message.
+      message:
+        $ref: '#/components/messages/GetBitmapTrigger'
+
+  # COMMANDS
+
+  loadVoice:
+    publish:
+      description: Requests a change to the user's selected voice.
+      message:
+        $ref: '#/components/messages/LoadVoiceAction'
+
+  selectRandomVoice:
+    publish:
+      description: Requests a change to a randomly selected voice. 
+      message:
+        $ref: '#/components/messages/SelectRandomVoiceAction'
+
+  voiceChangedEvent:
+    subscribe:
+      description: This message is triggered in response to a change in the currently selected voice (through user interaction in the app), in response to a <a href="#operation-publish-selectVoice">selectVoice</a> message, and in response to a <a href="#operation-publish-getCurrentVoice">getCurrentVoice</a> message.
+      message:
+        $ref: '#/components/messages/VoiceChangedEventTrigger'
+
+  getHearMyselfStatus:
+    publish:
+      description: Requests a toggle of the "Hear my voice" button in the app.
+      message:
+        $ref: '#/components/messages/GetHearMyselfStatusAction'
+
+  toggleHearMyVoice:
+    publish:
+      description: Requests a toggle of the "Hear my voice" button in the app.
+      message:
+        $ref: '#/components/messages/ToggleHearMyVoiceAction'
+    subscribe:
+      description: This message is triggered in response to a user interaction with the "Hear My Voice" toggle in the app, in response to a <a href="#operation-publish-toggleHearMyVoice">toggleHearMyVoice</a> message, and in response to a <a href="#operation-publish-getHearMyselfStatus">getHearMyselfStatus</a> message.
+      message:
+        $ref: '#/components/messages/ToggleHearMyVoiceTrigger'
+
+  getVoiceChangerStatus:
+    publish:
+      description: Requests the current state of the "Voice Changer" button in the app.
+      message:
+        $ref: '#/components/messages/GetVoiceChangerStatusAction'
+
+  toggleVoiceChanger:
+    publish:
+      description: Requests a toggle of the "Voice Changer" button in the app.
+      message:
+        $ref: '#/components/messages/ToggleVoiceChangerAction'
+    subscribe:
+      description: This message is triggered in response to a user interaction with the "Voice Changer" toggle in the app, in response to a <a href="#operation-publish-toggleVoiceChanger">toggleVoiceChanger</a> message, and in response to a <a href="#operation-publish-getVoiceChangerStatus">getVoiceChangerStatus</a> message.
+      message:
+        $ref: '#/components/messages/ToggleVoiceChangerTrigger'
+
+  getBackgroundEffectStatus:
+    publish:
+      description: Requests the current state of the "Background Effects" button in the app.
+      message:
+        $ref: '#/components/messages/GetBackgroundEffectStatusAction'
+
+  toggleBackground:
+    publish:
+      description: Requests a toggle of the "Background Effects" button in the app.
+      message:
+        $ref: '#/components/messages/ToggleBackgroundAction'
+    subscribe:
+      description: This message is triggered in response to a user interaction with the "Background Effects" toggle in the app, in response to a <a href="#operation-publish-toggleBackground">toggleBackground</a> message, and in response to a <a href="#operation-publish-getBackgroundEffectStatus">getBackgroundEffectStatus</a> message.
+      message:
+        $ref: '#/components/messages/ToggleBackgroundTrigger'
+
+  getMuteMicStatus:
+    publish:
+      description: Requests the current state of the "Mute" button in the app.
+      message:
+        $ref: '#/components/messages/GetMuteMicStatusAction'
+
+  toggleMuteMic:
+    publish:
+      description: Requests a toggle of the "Mute" button in the app.
+      message:
+        $ref: '#/components/messages/ToggleMuteAction'
+    subscribe:
+      description: This message is triggered in response to a user interacting with the "Mute" toggle in the app, in response to a <a href="#operation-publish-toggleMuteMic">toggleMuteMic</a> message, and in response to a <a href="#operation-publish-getMuteMicStatus">getMuteMicStatus</a> message.
+      message:
+        $ref: '#/components/messages/ToggleMuteTrigger'
+
+  setBeepSound:
+    publish:
+      description: Requests a state change of the "beep" sound that is normally actioned by the user to censor something he or she is saying.
+      message:
+        $ref: '#/components/messages/SetBeepSoundAction'
+
+  playMeme:
+    publish:
+      description: Requests playback of a meme sound.
+      message:
+        $ref: '#/components/messages/PlayMemeAction'
+
+  stopAllMemeSounds:
+    publish:
+      description: Requests playback stop of all meme sounds currently playing.
+      message:
+        $ref: '#/components/messages/StopAllMemeSoundsAction'
+
+  getMuteMemeForMeStatus:
+    publish:
+      description: Requests the current status of the "Mute for me" button in the app (Soundboard menu).
+      message:
+        $ref: '#/components/messages/GetMuteMemeForMeStatusAction'
+
+  toggleMuteMemeForMe:
+    publish:
+      description: Requests a toggle of the "Mute for me" button in the app (Soundboard menu).
+      message:
+        $ref: '#/components/messages/ToggleMuteForMeMemeAction'
+    subscribe:
+      description: This message is triggered in response to a change in "Mute for me" (through user interaction in the app), in response to a <a href="#operation-publish-toggleMuteMemeForMe">toggleMuteMemeForMe</a> message, and in response to a <a href="#operation-publish-getMuteMemeForMeStatus">getMuteMemeForMeStatus</a> message.
+      message:
+        $ref: '#/components/messages/ToggleMuteForMeMemeTrigger'
+
+  setCurrentVoiceParameter:
+    publish:
+      description: Requests a change of parameter for currently selected voice.
+      message:
+        $ref: '#/components/messages/SetCurrentVoiceParameterAction'
+    subscribe:
+      description: This message is triggered in response to a change in "setCurrentVoiceParameter", in response to a <a href="#operation-publish-setCurrentVoiceParameter">setCurrentVoiceParameter</a> message.
+      message:
+        $ref: '#/components/messages/SetCurrentVoiceParameterTrigger'
+
+#######################
+
+components:
+
+  ############
+  # MESSAGES #
+  ############
+
+  messages:
+
+    # COMMON MESSAGE PAYLOADS
+
+    Action:
+      description: All messages sent from plugin (client) to app (server) share this common structure.
+      payload:
+        properties:
+          action:
+            description: Unique identifier for a message type
+            type: string
+          id:
+            description: An identifier (UUID format is recommended) for the exact instance of the outbound message - this value will be returned by the server in related triggers
+            type: string
+          payload:
+            description: Message payload (JSON containing the custom data needed by the receiver - each message type will have a different associated payload
+            type: object
+
+    Trigger:
+      description: All messages sent from app (server) to plugin (client) share this common structure.
+      payload:
+        properties:
+          actionType:
+            description: Unique identifier for a message type
+            type: string
+          actionObject:
+            description: Message payload (JSON containing the custom data needed by the receiver - each message type will have a different associated payload
+            type: object
+
+    # USER / LICENSE MESSAGES
+
+    RegisterClientAction:
+      payload:
+        properties:
+          action:
+            const: registerClient
+          id:
+            type: string
+          payload:
+            properties:
+              clientKey:
+                description: The unique identifier for the partner. This key should be provided by Voicemod
+                type: string
+        example:
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          action: registerClient
+          payload:
+            clientKey: MyUniqueClientKey
+
+    RegisterClientTrigger:
+      payload:
+        properties:
+          action:
+            const: registerClient
+          id:
+            type: string
+          payload:
+            properties:
+              status:
+                $ref: '#/components/schemas/AuthStatus'
+        example:
+          action: registerClient
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload:
+            status:
+              code: 200
+              description: Authorized
+
+    GetUserAction:
+      payload:
+        properties:
+          action:
+            const: getUser
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getUser
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetUserTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getUser
+          actionObject:
+            properties:
+              userId:
+                description: The user's id in the Voicemod app
+                type: string
+        example:
+          actionType: getUser
+          actionObject: 
+            userId: a5a564eb-4976-4b4e-a660-5adcc855560e
+
+    GetUserLicenseAction:
+      payload:
+        properties:
+          action:
+            const: getUserLicense
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getUserLicense
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetUserLicenseTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getUserLicense
+          actionObject:
+            properties:
+              licenseType:
+                description: The user's license type in the Voicemod app
+                enum: ["pro", "free"]
+        example:
+          actionType: getUserLicense
+          actionObject: 
+            licenseType: pro
+
+    LicenseTypeChangedTrigger:
+      payload:
+        properties:
+          actionType:
+            const: licenseTypeChanged
+          actionObject:
+            properties:
+              licenseType:
+                description: The user's license type in the Voicemod app
+                enum: ["pro", "free"]
+        example:
+          actionType: licenseTypeChanged
+          appVersion: 2.7.0.3
+          actionID: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject: 
+            licenseType: free
+          context: ""
+
+    GetRotatoryVoicesRemainingTimeAction:
+      payload:
+        properties:
+          action:
+            const: getRotatoryVoicesRemainingTime
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getRotatoryVoicesRemainingTime
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetRotatoryVoicesRemainingTimeTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getRotatoryVoicesRemainingTime
+          actionObject:
+            properties:
+              remainingTime:
+                description: The remaining time (in seconds) before a refresh is made to the selection of voices that are available under the free version
+                type: number
+                format: long
+        example:
+          actionType: getRotatoryVoicesRemainingTime
+          actionObject: 
+            remainingTime: 71769
+
+    # REQUEST DATA MESSAGES
+
+    GetVoicesAction:
+      payload:
+        properties:
+          action:
+            const: getVoices
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getVoices
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetVoicesTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getVoices
+          actionObject:
+            properties:
+              voices:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VoiceMetaData'
+              currentVoice:
+                description: The currently selected voice in the app
+                type: string
+        example:
+          actionType: getVoices
+          actionObject: 
+            voices:
+              - id: baby
+                friendlyName: Baby
+                enabled: true
+                isCustom: false
+                favorited: false
+                isNew: false
+                bitmapChecksum: 9af56b7cb7a87db7b9d4e93852599981
+              - id: blocks
+                friendlyName: Blocks
+                enabled: true
+                isCustom: false
+                favorited: false
+                isNew: false
+                bitmapChecksum: 446244ad8e06e437ed13fa723d1df019
+          currentVoice: nofx
+  
+    GetCurrentVoiceAction:
+      payload:
+        properties:
+          action:
+            const: getCurrentVoice
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getCurrentVoice
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetCurrentVoiceTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getCurrentVoice
+          actionObject:
+            properties:
+              voiceID:
+                description: The id of the current voice
+                type: string
+              Parameters:
+                description: Property names and values for the current voice
+                type: object
+        example:
+          actionType: getCurrentVoice
+          actionObject:
+            voiceID: nofx
+            parameters:
+              - _Master Volume:
+                  default: 1
+                  maxValue: 2
+                  minValue: 0
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+              - voiceVolume:
+                  default: 6.5
+                  maxValue: 6.5
+                  minValue: 0
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+              - _Reduce Background Noise:
+                  default: -28
+                  maxValue: 0
+                  minValue: -40
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+              - noise Reduction:
+                  default: 0
+                  maxValue: 100
+                  minValue: 0
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+
+    GetAllSoundboardAction:
+      payload:
+        properties:
+          action:
+            const: getAllSoundboard
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getAllSoundboard
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetActiveSoundboardProfile:
+      payload:
+        properties:
+          type:
+            const: getActiveSoundboardProfile
+          payload:
+            properties:
+              profileId:
+                type: string
+
+    GetAllSoundboardTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getAllSoundboard
+          actionObject:
+            properties:
+              soundboards:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoundboardMetaData'
+        example:
+          actionType: getAllSoundboard
+          actionObject:
+            soundboards:
+              - id: 75bbb8c1-7dd9-434f-8d44-c99b4f1c61df
+                name: My Soundboard
+                isCustom": true
+                enabled": true
+                showProLogo": false
+                sounds: 
+                  - id: ad6efa6b-4872-4217-9465-5415178dfc1f
+                    name: Nuke Alert
+                    isCustom: false
+                    enabled: true
+                    playbackMode: PlayRestart
+                    loop: false
+                    muteOtherSounds: false
+                    muteVoice: false
+                    stopOtherSounds: true
+                    showProLogo: false
+                    bitmapChecksum: 14-04-DB-12-50-09-25-14-18-C5-62-2D-4A-AB-8D-31
+              - id: 96a38ce2-f6b6-4cb2-ada6-df41f845991a
+                name: Anime
+                isCustom": false
+                enabled": false
+                showProLogo": true
+                sounds: 
+                  - id: 1b7cda07-409f-4c25-999c-4729e8a931a3
+                    name: Temple Gong
+                    isCustom: false
+                    enabled: false
+                    playbackMode: PlayRestart
+                    loop: false
+                    muteOtherSounds: false
+                    muteVoice: false
+                    stopOtherSounds: true
+                    showProLogo: false
+                    bitmapChecksum: 2C-A0-DD-13-B5-93-F1-C4-4D-80-82-A5-74-DE-11-1F
+                  - id: b3ddaeea-8001-4e87-a7e6-362db6e96f2a
+                    name: Punch
+                    isCustom: false
+                    enabled: false
+                    playbackMode: PlayRestart
+                    loop: false
+                    muteOtherSounds: false
+                    muteVoice: false
+                    stopOtherSounds: true
+                    showProLogo: false
+                    bitmapChecksum: D1-FA-F1-2B-D9-44-88-21-06-C9-02-05-C2-D8-D7-E8
+
+    GetMemesAction:
+      payload:
+        properties:
+          action:
+            const: getMemes
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getMemes
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetMemesTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getMemes
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              listOfMemes:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/MemeFileMetaData'
+        example:
+          actionType: getMemes
+          appVersion: 2.0.0.34
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            listOfMemes:
+              - Name: My Soundboard - Toc toc Boom
+                FileName: "78"
+                Type: PlayRestart
+                Image: iVBORw0KUuxZaGehlmhmkW50Ng9dM [...] ==
+              - Name: My Soundboard - Jungle King
+                FileName: "79"
+                Type: PlayRestart
+                Image: iVBORw0KUuxZaGehlmhmkW50Ng9dM [...] ==
+              - Name: My Soundboard - Evil laugh
+                FileName: "80"
+                Type: PlayRestart
+                Image: iVBORw0KUuxZaGehlmhmkW50Ng9dM [...] ==
+          context: ""
+
+    GetBitmapAction:
+      payload:
+        properties:
+          action:
+            const: getBitmap
+          id:
+            type: string
+          payload:
+            description: <b>Note</b> - only one of the two fields (voiceID or memeId) should be included in an outbound payload 
+            properties:
+              voiceID: 
+                type: string
+                description: The ID of the voice we want to recover the bitmap for
+              memeId:
+                type: string
+                description: The ID of the meme we want to recover the bitmap for
+        examples:
+          - action: getBitmap
+            id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+            payload: 
+              voiceID: nofx
+          - action: getBitmap
+            id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+            payload: 
+              memeId: "26"
+
+    GetBitmapTrigger:
+      payload:
+        properties:
+          actionType:
+            const: getBitmap
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            oneOf:
+              - properties:
+                  voiceID:
+                    description: The id of the selected voice
+                    type: string
+                  result:
+                    $ref: '#/components/schemas/BitmapMetaData'
+              - properties:
+                  memeId:
+                    description: The id of the selected meme sound
+                    type: string
+                  result:
+                    $ref: '#/components/schemas/BitmapSingleMetaData'
+        example:
+          actionType: getBitmap
+          actionID: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          appVersion: "2.0.0.34"
+          context: ""
+          actionObject:
+            default: iVBORw0KUuxZaGehlmhmkW50Ng9dM [...] ==
+            selected: iVBORw0KUuxZaGehlmhmkW50Ng9dM [...] ==
+            transparent: iVBORw0KGgoAAAANSUhEUgAAAGwAAABsCAYAAACPZlfN[...] ==
+
+    # COMMAND MESSAGES
+
+    LoadVoiceAction:
+      payload:
+        properties:
+          action:
+            const: loadVoice
+          id:
+            type: string
+          payload:
+            properties:
+              voiceID: 
+                type: string
+                description: The id of the voice we want to select
+              parameterName:
+                type: string
+                description: The name of a parameter to be changed when selecting the voice
+              parameterValue:
+                type: string
+                description: The value of the parameter to be changed
+        example:
+          action: loadVoice
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload:
+            voiceID: cave
+
+    SelectRandomVoiceAction:
+      payload:
+        properties:
+          action:
+            const: selectRandomVoice
+          id:
+            type: string
+          payload:
+            properties:
+              mode:
+                description: 
+                  Shuffle mode - can be one of the following&#58;<br>
+                  - <b>AllVoices</b>&#58; Select any voice.  Available if the user has a Pro license<br>
+                  - <b>FreeVoices</b>&#58; Select any voice available in the free version<br>
+                  - <b>FavoriteVoices</b>&#58; Select only from favorited voices<br>
+                  - <b>CustomVoices</b>&#58; Select only from voices created by the user
+                enum: ["AllVoices", "FreeVoices", "FavoriteVoices", "CustomVoices"]
+        examples:
+          - action: selectRandomVoice
+            id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+            payload: {}
+          - action: selectRandomVoice
+            id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+            payload: 
+              mode: FavoriteVoices
+
+    VoiceChangedEventTrigger:
+      payload:
+        properties:
+          actionType:
+            const: voiceChangedEvent
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              voiceID:
+                description: The id of the current voice
+                type: string
+        example:
+          actionType: voiceChangedEvent
+          appVersion: 2.0.0.34
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            voiceID: deep
+
+    ToggleHearMyVoiceAction:
+      payload:
+        properties:
+          action:
+            const: toggleHearMyVoice
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: toggleHearMyVoice
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetHearMyselfStatusAction:
+      payload:
+        properties:
+          action:
+            const: getHearMyselfStatus
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getHearMyselfStatus
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    ToggleHearMyVoiceTrigger:
+      payload:
+        properties:
+          actionType:
+            cpnst: toggleHearMyVoice
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              value:
+                description: The value (true or false) of the parameter
+                type: boolean
+        example:
+          actionType: toggleHearMyVoice
+          appVersion: 2.0.0.34
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            value: true
+  
+    ToggleVoiceChangerAction:
+      payload:
+        properties:
+          action:
+            const: toggleVoiceChanger
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: toggleVoiceChanger
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+  
+    GetVoiceChangerStatusAction:
+      payload:
+        properties:
+          action:
+            const: getVoiceChangerStatus
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getVoiceChangerStatus
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+  
+    ToggleVoiceChangerTrigger:
+      payload:
+        properties:
+          actionType:
+            const: toggleVoiceChanger
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              value:
+                description: The value (true or false) of the parameter
+                type: boolean
+        example:
+          actionType: toggleVoiceChanger
+          appVersion: 2.0.0.34
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            value: false
+
+    ToggleBackgroundAction:
+      payload:
+        properties:
+          action:
+            const: toggleBackground
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: toggleBackground
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetBackgroundEffectStatusAction:
+      payload:
+        properties:
+          action:
+            const: getBackgroundEffectStatus
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getBackgroundEffectStatus
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    ToggleBackgroundTrigger:
+      payload:
+        properties:
+          actionType:
+            const: toggleBackground
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              value:
+                description: The value (true or false) of the parameter
+                type: boolean
+        example:
+          actionType: toggleBackground
+          appVersion: 2.0.0.33
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            value: false
+
+    ToggleMuteAction:
+      payload:
+        properties:
+          action:
+            const: toggleMuteMic
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: toggleMuteMic
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    GetMuteMicStatusAction:
+      payload:
+        properties:
+          action:
+            const: getMuteMicStatus
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getMuteMicStatus
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    ToggleMuteTrigger:
+      payload:
+        properties:
+          actionType:
+            const: toggleMute
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              value:
+                description: The value (true or false) of the parameter
+                type: boolean
+        example:
+          actionType: toggleMuteMic
+          appVersion: 2.0.0.33
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            value: true
+
+    SetBeepSoundAction:
+      payload:
+        properties:
+          action:
+            const: setBeepSound
+          id:
+            type: string
+          payload:
+            properties:
+              badLanguage:
+                description: 
+                  New setting&#58;<br>
+                  - 1 if we want to start the beep<br>
+                  - 0 if we want to end it
+                type: number
+                format: int
+        example:
+          action: setBeepSound
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: 
+            badLanguage: 1
+
+    PlayMemeAction:
+      payload:
+        properties:
+          action:
+            const: playMeme
+          id:
+            type: string
+          payload:
+            properties:
+              FileName:
+                description: The file name of the sound we want to play
+                type: string
+              IsKeyDown:
+                description: True if sending a KeyDown action
+                type: boolean
+        example:
+          action: playMeme
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: 
+            FileName: "80"
+            IsKeyDown: true
+
+    StopAllMemeSoundsAction:
+      payload:
+        properties:
+          action:
+            const: stopAllMemeSounds
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: stopAllMemeSounds
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    ToggleMuteForMeMemeAction:
+      payload:
+        properties:
+          action:
+            const: toggleMuteMemeForMe
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: toggleMuteMemeForMe
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    SetCurrentVoiceParameterAction:
+      payload:
+        properties:
+          action:
+            const: setCurrentVoiceParameter
+          id:
+            type: string
+          payload:
+            properties:
+              parameterName:
+                description: Name of voice parameter
+                type: string
+              parameterValue:
+                properties:
+                  maxValue:
+                    description: 'maxValue'
+                    type: number
+                  minValue:
+                    description: 'minValue'
+                    type: number
+                  displayNormalized:
+                    description: 'displayNormalized'
+                    type: boolean
+                  value:
+                    description: 'value'
+                    type: number
+        example:
+          action: setCurrentVoiceParameter
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {parameterName: 'Mix', parameterValue: { value: .6}}
+
+    GetMuteMemeForMeStatusAction:
+      payload:
+        properties:
+          action:
+            const: getMuteMemeForMeStatus
+          id:
+            type: string
+          payload:
+            const: {}
+        example:
+          action: getMuteMemeForMeStatus
+          id: ff7d7f15-0cbf-4c44-bc31-b56e0a6c9fa6
+          payload: {}
+
+    ToggleMuteForMeMemeTrigger:
+      payload:
+        properties:
+          actionType:
+            const: toggleMuteMemeForMe
+          actionID:
+            type: string
+          appVersion:
+            type: string
+          context:
+            type: object
+          actionObject:
+            properties:
+              value:
+                description: The value (true or false) of the parameter
+                type: boolean
+        example:
+          actionType: toggleMuteMemeForMe
+          appVersion: 2.0.0.33
+          actionId: 9aabf036-0ba4-4359-a2d6-90ac8691e320
+          actionObject:
+            value: true
+
+    SetCurrentVoiceParameterTrigger:
+      payload:
+        properties:
+          actionType:
+            const: setCurrentVoiceParameter
+          actionObject:
+            properties:
+              voiceID:
+                description: The id of the current voice
+                type: string
+              Parameters:
+                description: Property names and values for the current voice
+                type: object
+        example:
+          actionType: setCurrentVoiceParameter
+          actionObject:
+            voiceID: nofx
+            parameters:
+              - _Master Volume:
+                  default: 1
+                  maxValue: 2
+                  minValue: 0
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+              - voiceVolume:
+                  default: 6.5
+                  maxValue: 6.5
+                  minValue: 0
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+              - _Reduce Background Noise:
+                  default: -28
+                  maxValue: 0
+                  minValue: -40
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+              - noise Reduction:
+                  default: 0
+                  maxValue: 100
+                  minValue: 0
+                  displayNormalized: true
+                  typeController: 0
+                  value: 0
+
+
+  ###########
+  # SCHEMAS # 
+  ###########
+
+  schemas:
+
+    AuthStatus:
+      description: The result of a registerClient request. Should be '200, "authorized"' if authorized, otherwise, '401, "unauthorized"'
+      properties:
+        code:
+          type: number
+          description: Status code that complies with HTTP response standard
+        description:
+          type: string
+          description: Description of status code
+
+    VoiceMetaData:
+      properties:
+        id:
+          description: The id of the voice
+          type: string
+        friendlyName:
+          description: The friendly name of the voice
+          type: string
+        enabled:
+          description: True if enabled for the user
+          type: boolean
+        favorited:
+          description: True if the user has marked the voice as favorite
+          type: boolean
+        isNew:
+          description: True if the voice is new
+          type: boolean
+        isCustom:
+          description: True if the voice was generated by the user
+          type: boolean
+        bitmapChecksum:
+          description: The bitmap checksum enables the client to persist or cache the image to avoid excess getBitmap requests and improve performance
+          type: string
+
+    SoundboardMetaData:
+      properties:
+        Id: 
+          description: The id of the soundboard profile
+          type: string
+        Name: 
+          description: The friendly name of the soundboard
+          type: string
+        IsCustom: 
+          description: True if the soundboard profile was created by the user
+          type: boolean
+        Enabled: 
+          description: True if user can execute meme sounds in this soundboard
+          type: boolean
+        ShowProLogo: 
+          description: True if the user does not have a pro license and the soundboard is not enabled
+          type: boolean
+        sounds: 
+          description: The meme sounds contained in this soundboard profile
+          type: array
+          items:
+            $ref: '#/components/schemas/MemeMetaData'
+
+    MemeMetaData:
+      properties:
+        Id: 
+          description: The id of the meme sound
+          type: string
+        Name: 
+          description: The friendly name of the meme sound 
+          type: string
+        IsCustom: 
+          description: True if the meme sound was created by the user
+          type: boolean
+        Enabled: 
+          description: True if user can execute this meme sound
+          type: boolean
+        ShowProLogo: 
+          description: True if the user does not have a pro license and the meme sound is not enabled
+          type: boolean
+        playbackMode: 
+          description: 
+            The playback mode for the meme sound
+            - <b>PlayRestart</b>&#58; On hit, stop the sound if it is still playing, then restart it from the beginning.
+            - <b>PlayStop</b>&#58; On hit, stop the sound if it was still playing, restart it otherwise.
+            - <b>PlayPause</b>&#58; On hit, pause the sound if it was still playing, restart it otherwise.
+            - <b>PlayOverlap</b>&#58; On hit, reproduce the sound without stopping any other instances still playing.
+            - <b>PlayLoopOnPress</b>&#58; OnKeyDown, reproduce the sound on a loop and don't stop until the OnKeyUp.
+          enum: ["PlayRestart", "PlayPause", "PlayStop", "PlayOverlap", "PlayLoopOnPress"]
+        loop: 
+          description: True if the meme sound should be played back in loop
+          type: boolean
+        muteOtherSounds: 
+          description: True if the meme sound should stop playback of other sounds 
+          type: boolean
+        muteVoice: 
+          description: True if the meme sound should mute the user's microphone
+          type: boolean
+        bitmapChecksum: 
+          description: The bitmap checksum enables the client to persist or cache the image to avoid excess getBitmap requests and improve performance
+          type: string
+
+    MemeFileMetaData:
+      properties:
+        Name:
+          description: The friendly name of the meme sound 
+          type: string
+        Filename:
+          description: The filename of the meme sound 
+          type: string
+        Type:
+          description:
+            The playback mode for the meme sound
+            - <b>PlayRestart</b>&#58; On hit, stop the sound if it is still playing, then restart it from the beginning.
+            - <b>PlayStop</b>&#58; On hit, stop the sound if it was still playing, restart it otherwise.
+            - <b>PlayPause</b>&#58; On hit, pause the sound if it was still playing, restart it otherwise.
+            - <b>PlayOverlap</b>&#58; On hit, reproduce the sound without stopping any other instances still playing.
+            - <b>PlayLoopOnPress</b>&#58; OnKeyDown, reproduce the sound on a loop and don't stop until the OnKeyUp.
+          enum: ["PlayRestart", "PlayPause", "PlayStop", "PlayOverlap", "PlayLoopOnPress"]
+        Image:
+          description: The filename of the meme sound's image 
+          type: string
+    
+    BitmapMetaData:
+      properties:
+        default:
+          description: The default icon for the resource (base64 encoded binary)
+          type: string
+        selected:
+          description: The icon for the resource when selected (base64 encoded binary)
+          type: string
+        transparent:
+          description: The icon with transparency for the resource
+          type: string
+
+    BitmapSingleMetaData:
+      properties:
+        image:
+          description: The default icon for the resource (base64 encoded binary)
+          type: string

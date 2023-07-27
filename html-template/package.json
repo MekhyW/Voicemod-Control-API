@@ -1,0 +1,134 @@
+{
+  "name": "@asyncapi/html-template",
+  "version": "0.28.1",
+  "description": "HTML template for the AsyncAPI generator.",
+  "keywords": [
+    "asyncapi",
+    "generator",
+    "html",
+    "template"
+  ],
+  "author": "Fran Mendez <fmvilas@gmail.com> (fmvilas.com)",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asyncapi/html-template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/asyncapi/html-template/issues"
+  },
+  "homepage": "https://github.com/asyncapi/html-template#readme",
+  "scripts": {
+    "lint": "echo \"No linter specified yet\"",
+    "release": "semantic-release",
+    "develop": "npm run generate:assets && ag https://raw.githubusercontent.com/asyncapi/generator/v1.1.5/test/docs/dummy.yml ./ -o test/output --force-write --watch-template",
+    "//develop:install": "Force ag to install your local html-template source code",
+    "develop:install": " npm run develop -- --install",
+    "generate:assets": "npm run copy:sources && npm run generate:readme:toc",
+    "generate:readme:toc": "markdown-toc -i README.md",
+    "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION",
+    "copy:sources": "node ./scripts/copy-sources.js",
+    "prepublishOnly": "npm run generate:assets",
+    "test": "jest --coverage"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@asyncapi/parser": "^1.17.0",
+    "@asyncapi/react-component": "^1.0.0-next.44",
+    "highlight.js": "10.7.3",
+    "node-fetch": "^2.6.7",
+    "puppeteer": "^14.1.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "rimraf": "^3.0.2"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/github": "^7.0.4",
+    "@semantic-release/npm": "^7.0.3",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "conventional-changelog-conventionalcommits": "^4.2.3",
+    "cross-env": "^7.0.3",
+    "jest": "^26.6.3",
+    "jest-esm-transformer": "^1.0.0",
+    "markdown-toc": "^1.2.0",
+    "semantic-release": "^19.0.3"
+  },
+  "release": {
+    "branches": [
+      "master"
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  },
+  "generator": {
+    "parameters": {
+      "sidebarOrganization": {
+        "description": "Defines how the sidebar should be organized. 'byTags' to categorize operations by tags in the root of the document, `byTagsNoRoot` does the same but for pub/sub tags.",
+        "required": false
+      },
+      "baseHref": {
+        "description": "Sets the base URL for links and forms.",
+        "required": false
+      },
+      "version": {
+        "description": "Override the version of your application provided under `info.version` location in the specification file.",
+        "required": false
+      },
+      "singleFile": {
+        "description": "If set this parameter to true generate single html file with scripts and styles inside",
+        "required": false,
+        "default": false
+      },
+      "outFilename": {
+        "description": "The name of the output HTML file",
+        "default": "index.html",
+        "required": false
+      },
+      "pdf": {
+        "description": "Set to `true` to get index.pdf generated next to your index.html",
+        "default": false
+      },
+      "pdfTimeout": {
+        "description": "The timeout (in ms) used to generate the pdf",
+        "default": 30000,
+        "required": false
+      },
+      "favicon": {
+        "description": "URL/Path of the favicon",
+        "default": "",
+        "required": false
+      },
+      "config": {
+        "description": "Stringified JSON or a path to a JSON file to override the default React component config. The config override is merged with the default config using the [JSON Merge Patch](https://tools.ietf.org/html/rfc7386) algorithm.",
+        "default": "",
+        "required": false
+      }
+    },
+    "generator": ">=1.9.12 <2.0.0",
+    "nonRenderableFiles": [
+      "js/asyncapi-ui.min.js"
+    ]
+  },
+  "jest": {
+    "transform": {
+      "\\.m?jsx?$": "jest-esm-transformer"
+    }
+  }
+}

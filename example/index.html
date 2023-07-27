@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang = "en">
+
+   <head>
+      <meta charset = utf-8>
+      <title>Websockets</title>
+      <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+      <link rel="stylesheet" media="all" href="style.css" />
+		<!--<link rel="stylesheet" media="all" href="grid.css" />-->
+      <body>
+		
+         <section id="wrapper">
+			
+            <header>
+                  <div style="float: right;">
+                     Port: <input style="width: 500px" id="port" value="59129,20000,39273,42152,43782,46667,35679,37170,38501,33952,30546" />
+                     <button id="connect">Connect</button>
+                     <button id="disconnect">Disconnect</button>
+                  </div>
+               <h1>
+                  Voicemod Web Interface
+               </h1>
+            </header>
+				
+            <article>
+               <button id="toggleHearMyVoice">Hear My Voice</button>               
+               <button id="toggleVoiceChanger">Voice Changer</button>               
+               <button id="toggleBackground">Background Sounds</button>               
+               <button id="toggleMute">Muted</button>
+               <button id="randomVoice">Random voice</button>               
+               <button id="muteMemeForMe">Mute Meme for Me</button>               
+               <button id="pushToTalk">Push To Talk</button>               
+               <button id="badLanguage">Bad Language</button>               
+               <label id="licenseType">License Type</label>               
+            </article>
+            <article>
+               <button id="getRotatoryVoicesRemainingTime">Get Rotatory Voices Remaining Time</button>
+               <button id="getUserLicense">Get User License</button>
+               <button id="getAllSoundboard">Get All Soundboard</button>
+               <button id="getAllMemes">Get All Memes</button>
+               <button id="stopAllMemeSounds">Stop All Sounds</button>
+               <button id="getCurrentVoice">Get Current Voice</button>
+               <button id="getUser">Get User</button>
+            </article>
+            <article id="voicesParametersArticle">
+               <div class="article-head">
+                  Set current voice parameters
+               </div>
+               <div class="article-body article-body-hidden">
+                  <div class="input-block">
+                     <div class="input-title">Parameter name</div>
+                     <select id="setCurrentVoiceParameter-parameterName"></select>
+                  </div>
+                  <div class="input-block">
+                     <div class="input-title">maxValue</div>
+                     <input type="number" id="setCurrentVoiceParameter-maxValue"/>
+                  </div>
+                  <div class="input-block">
+                     <div class="input-title">minValue</div>
+                     <input type="number" id="setCurrentVoiceParameter-minValue"/>
+                  </div>
+                  <div class="input-block">
+                     <div class="input-title">displayNormalized</div>
+                     <input type="checkbox" id="setCurrentVoiceParameter-displayNormalized"/>
+                  </div>
+                  <div class="input-block">
+                     <div class="input-title">value</div>
+                     <input type="number" id="setCurrentVoiceParameter-value"/>
+                  </div>
+                  <div class="input-block">
+                     <button id="setCurrentVoiceParameters">Set parameters</button>
+                  </div>
+               </div>
+            </article>
+            <article>
+               <div class="voiceButtons" id="divFreeVoices">
+                  Free Voices
+                  <ul class="grid-icons" id="listFreeVoices">
+                  </ul>
+               </div>
+               <div class="voiceButtons" id="divFavoriteVoices">
+                  Favorite Voices
+                  <ul class="grid-icons" id="listFavoriteVoices">
+                  </ul>
+               </div>
+               <div class="voiceButtons" id="divCustomVoices">
+                  Custom Voices
+                  <ul class="grid-icons" id="listCustomVoices">
+                  </ul>
+               </div>
+               <div class="voiceButtons" id="divAllVoices">
+                  All Voices
+                  <ul class="grid-icons" id="listAllVoices">
+                  </ul>
+               </div>
+               <div class="voiceButtons" id="divMemes">
+                  Memes    
+                  <ul class="grid-icons" id="listMemes">
+                  </ul>
+               </div>                
+            </article>
+            <article>
+               <div>
+                  <input type="checkbox" id="cbMuteGetBitmapNotifications" checked/> Mute get bitmap notifications
+               </div>
+               <span id="clear" style="float:right; margin: 0 25px 0 0; padding: 5px; cursor: pointer">Clear</span>
+               <p id = "status">Not connected </p>
+               <ul id = "log"></ul>
+            </article>
+				
+         </section>
+			
+      </body>
+      <script type="text/javascript" src="voiceParametersManager.js"></script>
+      <script type="text/javascript" src="voicemod.js"></script>
+      <script type="text/javascript" src="mainInterface.js"></script>
+		
+   </head>	
+	
+</html>
