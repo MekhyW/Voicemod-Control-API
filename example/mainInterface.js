@@ -7,7 +7,9 @@ Voicemod.init({
     autoRetry: true,
     onConnect: function(){
         console.log("onConnect Delegado");        
-        Voicemod.sendMessageToServer('registerClient', 'anyClient');
+        // Review Get an API Key section in README.md to obtain a valid API Key
+        // https://gitlab.com/voicemod/kit/control-api#getting-the-api-key
+        Voicemod.sendMessageToServer('registerClient', 'YOUR_API_KEY');
         state.className = "success";
         state.innerHTML = "Connected to server";
     },
